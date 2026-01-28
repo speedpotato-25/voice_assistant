@@ -2,7 +2,7 @@
 import ollama as ai
 import pyttsx3
 import speech_recognition as sr
-from datetime import datetime as dt
+import playsound
 
 #variables
 engine = pyttsx3.init()
@@ -13,13 +13,15 @@ answer = None
 r = sr.Recognizer()
 
 def main_part(source):
-    print("starting")
     audio = r.listen(source, phrase_time_limit=3)
     try:
         print("Recognizing...")
         text = r.recognize_google(audio)
         print(f"You said: {text}")
-        response = ai.chat(model="llama3.2:1b", messages=[{"role": "user", "content": text}])
+        response = ai.chat(model="llama3.2:1b", messages=[{"role": "user", "content": text}], options={
+            "num_predict" : 60,
+            "temperature" : 0.47
+        })
         answer = response['message']['content']
         print(answer)
         engine.say(answer)
@@ -47,8 +49,7 @@ def wake_up():
                 audio_text = r.recognize_google(audio).lower()
 
                 if "hello" in audio_text:
-                    engine.say("how may i help you today")
-                    engine.runAndWait()
+                    playsound.playsound("effect.wav")
                     main_part(source)
             except (sr.UnknownValueError, sr.WaitTimeoutError):
                 continue
