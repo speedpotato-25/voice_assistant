@@ -11,6 +11,7 @@ time = None
 response = None
 answer = None
 r = sr.Recognizer()
+trigger = ""
 
 def main_part(source):
     audio = r.listen(source, phrase_time_limit=3)
@@ -24,20 +25,21 @@ def main_part(source):
         })
         answer = response['message']['content']
         print(answer)
-        engine.say(answer)
+        engine.say(answer) #speaks the response
         engine.runAndWait()
 
-    except sr.UnknownValueError:
+    except sr.UnknownValueError: #error handling
         engine.say("Sorry, I cannot understand")
         engine.runAndWait()
 
     except Exception as e:
-        print("error")
+        print(f"error {e}")
 
     finally:
         print("done")
 
 def wake_up():
+    global trigger
     with sr.Microphone() as source:
         print("Adjusting for ambient noise... Please wait.")
         r.adjust_for_ambient_noise(source,duration= 2)
@@ -48,7 +50,7 @@ def wake_up():
                 audio = r.listen(source, timeout=1, phrase_time_limit=3)
                 audio_text = r.recognize_google(audio).lower()
 
-                if "hello" in audio_text:
+                if trigger in audio_text:
                     playsound.playsound("effect.wav")
                     main_part(source)
             except (sr.UnknownValueError, sr.WaitTimeoutError):
@@ -57,5 +59,15 @@ def wake_up():
             except Exception as e:
                 print(f"error{e}")
 
+def trigger_setup():
+    global trigger
+    with sr.Microphone() as source:
+        print("Adjusting for ambient noise... Please wait.")
+        r.adjust_for_ambient_noise(source,duration= 2)
+        print("speak your desired trigger word now")
+        playsound.playsound("effect.wav")
+        trigger_sound = r.listen(source, timeout=1, phrase_time_limit=3)
+        trigger = r.recognize_google(trigger_sound).lower()
 
+trigger_setup()
 wake_up()
